@@ -1897,6 +1897,26 @@
 
     let countdown = 180;
     let cloudSyncCounter = 300; // 每 5 分鐘從雲端拉取一次
+
+    // 新增：偵測網頁切回前景 (手機切換 App 或解鎖螢幕時觸發)
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && !editingCoin) {
+            console.log('網頁切回前景，自動同步雲端與最新報價...');
+            countdown = 180;
+            cloudSyncCounter = 300;
+            
+            // 立即刷新現價
+            fetchExchangeData();
+            
+            // 立即從雲端拉取 V8 可能更新的最新狀態
+            if (cloudBin) { 
+                fetchFromCloud(true).then(() => {
+                    showToast('🔄 已自動同步雲端最新狀態', 'success');
+                });
+            }
+        }
+    });
+
     setInterval(() => {
         countdown--;
         cloudSyncCounter--;
