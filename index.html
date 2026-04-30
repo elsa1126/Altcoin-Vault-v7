@@ -39,7 +39,8 @@
         }
 
         * {
-            box-sizing: border-box
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -86,7 +87,11 @@
             padding: 14px 16px;
             cursor: pointer;
             transition: all .2s ease;
-            -webkit-tap-highlight-color: transparent
+            position: relative;
+            /* 防止行動端長按時選取文字或跳出系統選單 */
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         .coin-card:hover {
@@ -368,27 +373,34 @@
             border-bottom: none
         }
 
+        /* === 詳細資訊與行動端展開邏輯 === */
         .optional-detail {
             max-height: 0;
             opacity: 0;
             overflow: hidden;
             transition: all .3s ease;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            border-top: 1px solid transparent;
             margin-top: 0
         }
 
-        .coin-card:hover .optional-detail {
-            max-height: 200px;
-            opacity: 1;
-            margin-top: 10px;
-            padding-top: 10px
+        /* 電腦端 Hover 展開 */
+        @media (hover: hover) {
+            .coin-card:hover .optional-detail {
+                max-height: 200px;
+                opacity: 1;
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top-color: rgba(255, 255, 255, 0.04);
+            }
         }
 
-        .coin-card:active .optional-detail {
+        /* 行動端透過 class 展開 */
+        .coin-card.expanded .optional-detail {
             max-height: 200px;
             opacity: 1;
             margin-top: 10px;
-            padding-top: 10px
+            padding-top: 10px;
+            border-top-color: rgba(255, 255, 255, 0.04);
         }
 
         /* === GLOBAL DASHBOARD === */
@@ -900,6 +912,12 @@
     let editingCoin = null;
     let selectedCoin = null;
     let userSettings = JSON.parse(localStorage.getItem('coinSettingsV3')) || {};
+
+    // 新增：觸控與手勢控制變數
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    let longPressTimer;
+    let isLongPress = false;
+    let isMoving = false;
 
     const DEFAULT_BIN_ID = '69ef8fb0856a6821897b7cf0';
     const DEFAULT_API_KEY = '$2a$10$7hoFNnd/YF8ugM4NxoifIubFXp7cDTdzZKsB8uuR2vxc0cX8cbSAC';
@@ -1577,6 +1595,8 @@
             default: return 0;
         }
     }
+
+    // === 核心渲染與事件綁定 ===
     function renderCards() {
         const container = document.getElementById('coin-container');
         const searchVal = (document.getElementById('searchInput').value || document.getElementById('desktopSearchInput').value || '').toUpperCase();
@@ -1595,6 +1615,7 @@
         });
         container.innerHTML = '';
         if (list.length === 0) { container.innerHTML = '<div class="py-16 text-center text-[#525C6F] text-xs">沒有符合條件的幣種</div>'; return }
+        
         list.forEach((coin, i) => {
             const m = marketData[coin] || { price: 0, change: 0, vol: 0, src: '--' };
             const s = userSettings[coin] || {};
@@ -1602,13 +1623,47 @@
             const chgColor = isUp ? 'text-emerald-400' : 'text-red-400';
             const targetHit = s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target));
             const noMarket = s.manualStatus === 'no_market' || m.src === '--';
+            
             const card = document.createElement('div');
             let cls = 'coin-card group';
             if (s.isHolding) cls += ' holding';
             if (targetHit) cls += ' target-hit';
             card.className = cls;
             card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
-            card.onclick = () => openBottomSheet(coin);
+            
+            // --- 行動端與電腦端交互分離 ---
+            if (!isTouchDevice) {
+                // 電腦端：點擊開啟編輯 (Hover 控制由 CSS 負責)
+                card.onclick = () => openBottomSheet(coin);
+            } else {
+                // 行動端：手勢操作
+                card.addEventListener('touchstart', (e) => {
+                    isLongPress = false;
+                    isMoving = false;
+                    longPressTimer = setTimeout(() => {
+                        if (!isMoving) {
+                            isLongPress = true;
+                            // 若設備支援，則震動提示
+                            if (navigator.vibrate) navigator.vibrate(60);
+                            openBottomSheet(coin);
+                        }
+                    }, 600); // 600ms 長按判定
+                }, { passive: true });
+
+                card.addEventListener('touchmove', () => {
+                    // 若有滑動，取消長按
+                    isMoving = true;
+                    clearTimeout(longPressTimer);
+                }, { passive: true });
+
+                card.addEventListener('touchend', (e) => {
+                    clearTimeout(longPressTimer);
+                    // 若沒有觸發長按且沒有滑動，視為單擊展開/收合
+                    if (!isLongPress && !isMoving) {
+                        card.classList.toggle('expanded');
+                    }
+                }, { passive: true });
+            }
 
             const curPrice = Number(m.price);
             const entryPrice = Number(s.entry);
