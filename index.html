@@ -1624,9 +1624,12 @@
             const targetHit = s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target));
             const noMarket = s.manualStatus === 'no_market' || m.src === '--';
             
+            // 邏輯優化：已達標代表出場，不再算是主動持有
+            const isActivelyHolding = s.isHolding && !targetHit;
+            
             const card = document.createElement('div');
             let cls = 'coin-card group';
-            if (s.isHolding) cls += ' holding';
+            if (isActivelyHolding) cls += ' holding';
             if (targetHit) cls += ' target-hit';
             card.className = cls;
             card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
@@ -1670,28 +1673,34 @@
             const targetPrice = Number(s.target);
 
             let pnlHtml = '';
-            if (s.isHolding && entryPrice > 0 && curPrice > 0) {
-                const pnlPct = ((curPrice - entryPrice) / entryPrice * 100 * (s.leverage || 1));
+            if ((isActivelyHolding || targetHit) && entryPrice > 0 && curPrice > 0) {
+                const pnlCalcPrice = targetHit && targetPrice > 0 ? targetPrice : curPrice; // 達標後鎖定目標價計算
+                const pnlPct = ((pnlCalcPrice - entryPrice) / entryPrice * 100 * (s.leverage || 1));
                 const pnlColor = pnlPct >= 0 ? 'text-emerald-400' : 'text-red-400';
                 const pnlAbs = s.capital > 0 ? (s.capital * pnlPct / 100).toFixed(2) : null;
+                const pnlLabel = targetHit ? '結算盈虧 (估)' : '倉位盈虧 (估)';
                 pnlHtml = `<div class="text-right flex flex-col items-end">
-                <span class="text-[9px] text-[#525C6F] font-bold uppercase tracking-tight">倉位盈虧 (估)</span>
+                <span class="text-[9px] text-[#525C6F] font-bold uppercase tracking-tight">${pnlLabel}</span>
                 <span class="${pnlColor} font-mono text-[13px] font-bold">${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}% ${pnlAbs ? `<span class="text-[10px] ml-0.5 opacity-80">($${pnlAbs})</span>` : ''}</span>
             </div>`;
             }
 
             let distHtml = '';
             if (curPrice > 0) {
-                const goalPrice = s.isHolding ? targetPrice : entryPrice;
-                const distLabel = s.isHolding ? '距目標' : '距觸發';
-                if (goalPrice > 0) {
-                    const distPct = Math.abs(goalPrice - curPrice) / curPrice * 100;
-                    distHtml = `<div class="flex items-center gap-1.5">
-                    <span class="text-[10px] text-[#525C6F] font-medium">${distLabel}:</span>
-                    <span class="text-[11px] font-mono font-bold text-white/90">${distPct.toFixed(2)}%</span>
-                </div>`;
+                if (targetHit) {
+                    distHtml = `<div class="flex items-center gap-1.5"><span class="text-[10px] text-amber-400 font-bold">✅ 已達標出場</span></div>`;
                 } else {
-                    distHtml = `<div class="flex items-center gap-1.5 opacity-30"><span class="text-[10px] text-[#525C6F]">無標價</span></div>`;
+                    const goalPrice = isActivelyHolding ? targetPrice : entryPrice;
+                    const distLabel = isActivelyHolding ? '距目標' : '距觸發';
+                    if (goalPrice > 0) {
+                        const distPct = Math.abs(goalPrice - curPrice) / curPrice * 100;
+                        distHtml = `<div class="flex items-center gap-1.5">
+                        <span class="text-[10px] text-[#525C6F] font-medium">${distLabel}:</span>
+                        <span class="text-[11px] font-mono font-bold text-white/90">${distPct.toFixed(2)}%</span>
+                    </div>`;
+                    } else {
+                        distHtml = `<div class="flex items-center gap-1.5 opacity-30"><span class="text-[10px] text-[#525C6F]">無標價</span></div>`;
+                    }
                 }
             }
 
@@ -1700,7 +1709,8 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-white text-[16px]">${coin}</span>
-                        ${s.isHolding ? `<span class="text-[9px] px-1.5 py-0.5 bg-[#638AFF]/15 text-[#638AFF] rounded-md border border-[#638AFF]/30 font-bold tracking-tight">HOLDING</span>` : ''}
+                        ${isActivelyHolding ? `<span class="text-[9px] px-1.5 py-0.5 bg-[#638AFF]/15 text-[#638AFF] rounded-md border border-[#638AFF]/30 font-bold tracking-tight">HOLDING</span>` : ''}
+                        ${targetHit ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 rounded-md border border-amber-500/30 font-bold tracking-tight">TARGET HIT</span>` : ''}
                     </div>
                     <span class="${chgColor} text-[13px] font-bold font-mono bg-white/[0.03] px-2 py-0.5 rounded-md border border-white/[0.04]">${isUp ? '+' : ''}${Number(m.change).toFixed(2)}%</span>
                 </div>
@@ -1756,6 +1766,8 @@
         COIN_LIST.forEach(coin => {
             const s = userSettings[coin], m = marketData[coin];
             if (!s || !m || !s.isHolding || !s.capital || !s.entry) return;
+            const targetHit = s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target));
+            if (targetHit) return; // 已達標視為出場，不列入浮動損益
             const p = Number(m.price), e = Number(s.entry), cap = Number(s.capital), lev = Number(s.leverage || 1);
             if (p > 0 && e > 0) tot += cap * ((p - e) / e) * lev;
         });
