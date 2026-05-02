@@ -88,7 +88,6 @@
             cursor: pointer;
             transition: all .2s ease;
             position: relative;
-            /* 防止行動端長按時選取文字或跳出系統選單 */
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
@@ -373,7 +372,6 @@
             border-bottom: none
         }
 
-        /* === 詳細資訊與行動端展開邏輯 === */
         .optional-detail {
             max-height: 0;
             opacity: 0;
@@ -383,7 +381,6 @@
             margin-top: 0
         }
 
-        /* 電腦端 Hover 展開 */
         @media (hover: hover) {
             .coin-card:hover .optional-detail {
                 max-height: 200px;
@@ -394,7 +391,6 @@
             }
         }
 
-        /* 行動端透過 class 展開 */
         .coin-card.expanded .optional-detail {
             max-height: 200px;
             opacity: 1;
@@ -461,7 +457,6 @@
         }
         .gd-inp:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(99,138,255,.15); }
         .gd-divider { height:1px; background:rgba(255,255,255,.05); margin: 10px 0; }
-        /* dual progress bars */
         .prog-wrap { margin-top: 6px; }
         .prog-row-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted); margin-bottom:2px; }
         .prog-track {
@@ -480,9 +475,7 @@
         }
         .prog-bot-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted); margin-top:2px; }
 
-        /* === DESKTOP RESPONSIVE === */
         @media (min-width: 1024px) {
-            /* 覆寫底層面板為右側側邊欄 */
             #bottom-sheet, #sort-menu {
                 right: 0;
                 left: auto;
@@ -496,19 +489,10 @@
                 transform: translateX(100%);
                 padding: calc(env(safe-area-inset-top) + 24px) 24px 24px 24px;
             }
-            #bottom-sheet.open, #sort-menu.open {
-                transform: translateX(0);
-            }
-            .sheet-handle {
-                display: none;
-            }
+            #bottom-sheet.open, #sort-menu.open { transform: translateX(0); }
+            .sheet-handle { display: none; }
+            #pill-menu { display: none !important; }
 
-            /* 隱藏底部浮動選單 */
-            #pill-menu {
-                display: none !important;
-            }
-
-            /* 全域看板改為滿版的左側邊欄 */
             #gd {
                 top: 0;
                 bottom: 0;
@@ -525,10 +509,7 @@
                 padding-top: calc(env(safe-area-inset-top) + 20px);
                 z-index: 40;
             }
-            #gd:hover, #gd.open {
-                width: 320px;
-                max-height: 100vh;
-            }
+            #gd:hover, #gd.open { width: 320px; max-height: 100vh; }
             #gd-header-wrap {
                 width: 100%;
                 cursor: default;
@@ -537,78 +518,31 @@
                 margin-bottom: 12px;
                 padding: 10px 20px 20px 20px;
             }
-            #gd-header-icon {
-                font-size: 24px;
-                width: 40px;
-                height: 40px;
-                justify-content: flex-start;
-            }
-            #gd-header-content {
-                opacity: 1;
-            }
-            #gd-header-content > div > span:first-child {
-                font-size: 14px !important;
-                font-weight: 700 !important;
-                color: #fff !important;
-            }
-            #gd-chevron {
-                display: none;
-            }
+            #gd-header-icon { font-size: 24px; width: 40px; height: 40px; justify-content: flex-start; }
+            #gd-header-content { opacity: 1; }
+            #gd-header-content > div > span:first-child { font-size: 14px !important; font-weight: 700 !important; color: #fff !important; }
+            #gd-chevron { display: none; }
             
-            /* 內部間距與字體放大 */
-            #gd-body {
-                padding: 0 20px 24px 20px;
-            }
-            #gd-body .gd-lbl {
-                font-size: 10px;
-                margin-bottom: 6px;
-                color: #8B95A8;
-            }
-            #gd-body .gd-inp {
-                font-size: 14px;
-                padding: 10px 12px;
-                line-height: 1.4 !important;
-            }
-            #gd-body .gd-val {
-                font-size: 17px;
-            }
-            #gd-body > div[style*="background"] {
-                padding: 12px 14px !important;
-                margin-bottom: 16px !important;
-            }
-            #gd-body .gd-divider {
-                margin: 20px 0;
-            }
-            #gd-body .prog-row-labels span, #gd-body .prog-bot-labels span {
-                font-size: 10px;
-            }
-            #gd-body .prog-wrap {
-                margin-top: 12px !important;
-            }
-            #gd-body .prog-track {
-                height: 8px;
-                margin: 8px 0;
-            }
-            #gd-body .prog-dot {
-                width: 14px;
-                height: 14px;
-                border-width: 3px;
-            }
+            #gd-body { padding: 0 20px 24px 20px; }
+            #gd-body .gd-lbl { font-size: 10px; margin-bottom: 6px; color: #8B95A8; }
+            #gd-body .gd-inp { font-size: 14px; padding: 10px 12px; line-height: 1.4 !important; }
+            #gd-body .gd-val { font-size: 17px; }
+            #gd-body > div[style*="background"] { padding: 12px 14px !important; margin-bottom: 16px !important; }
+            #gd-body .gd-divider { margin: 20px 0; }
+            #gd-body .prog-row-labels span, #gd-body .prog-bot-labels span { font-size: 10px; }
+            #gd-body .prog-wrap { margin-top: 12px !important; }
+            #gd-body .prog-track { height: 8px; margin: 8px 0; }
+            #gd-body .prog-dot { width: 14px; height: 14px; border-width: 3px; }
             
-            /* 將 coin-container 轉為 grid */
             #coin-container {
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 16px;
             }
-            #coin-container > .py-16 { /* No coins found message spanning full width */
-                grid-column: 1 / -1;
-            }
+            #coin-container > .py-16 { grid-column: 1 / -1; }
             
             @media (min-width: 1440px) {
-                #coin-container {
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                }
+                #coin-container { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             }
         }
     </style>
@@ -629,7 +563,6 @@
             </div>
         </div>
         <div id="gd-body">
-            <!-- Row 1: principal + realized pnl -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
                 <div>
                     <p class="gd-lbl">清單總投入 (自動加總)</p>
@@ -640,7 +573,6 @@
                     <input class="gd-inp" type="number" id="gd-realized" placeholder="+/-" oninput="gdSaveLocal()" onchange="gdSaveCloud()">
                 </div>
             </div>
-            <!-- Row 2: target profit + float pnl (auto) -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
                 <div>
                     <p class="gd-lbl">目標總獲利 (自動估算)</p>
@@ -651,7 +583,6 @@
                     <div class="gd-inp" id="gd-float" style="color:var(--text-muted);cursor:default;line-height:1.6">—</div>
                 </div>
             </div>
-            <!-- Total profit highlight -->
             <div style="background:rgba(99,138,255,.08);border:1px solid rgba(99,138,255,.15);border-radius:10px;padding:8px 10px;margin-bottom:10px">
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <p class="gd-lbl" style="margin:0">目前總獲利</p>
@@ -661,7 +592,6 @@
 
             <div class="gd-divider"></div>
 
-            <!-- Bar A: % progress -->
             <div class="prog-wrap">
                 <div class="prog-row-labels">
                     <span style="color:var(--text-muted)">漲幅進度 (%)</span>
@@ -679,7 +609,6 @@
                 </div>
             </div>
 
-            <!-- Bar B: USDT progress -->
             <div class="prog-wrap" style="margin-top:10px">
                 <div class="prog-row-labels">
                     <span style="color:var(--text-muted)">資金進度 (USDT)</span>
@@ -705,7 +634,7 @@
     <div id="sheet-overlay" class="overlay" onclick="closeBottomSheet()"></div>
     <div id="sort-overlay" class="overlay" style="z-index:44" onclick="toggleSortMenu()"></div>
 
-    <!-- Side Panel (個人中心) -->
+    <!-- Side Panel -->
     <div id="side-panel">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-lg font-bold">個人中心</h2>
@@ -773,7 +702,7 @@
         </div>
     </div>
 
-    <!-- Notification Center Panel (通知中心) -->
+    <!-- Notification Center Panel -->
     <div id="notif-panel">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-bold flex items-center gap-2">🔔 通知中心</h2>
@@ -825,7 +754,6 @@
                 </h1>
             </div>
             
-            <!-- Desktop Tools -->
             <div class="hidden lg:flex flex-1 max-w-xl mx-8 items-center gap-4">
                 <div class="flex-1 relative">
                     <input type="text" id="desktopSearchInput" placeholder="搜尋幣種..." class="w-full bg-[#0F1219] border border-white/[0.08] text-white text-sm rounded-lg py-2 px-4 focus:outline-none focus:border-[#638AFF] transition">
@@ -913,7 +841,6 @@
     let selectedCoin = null;
     let userSettings = JSON.parse(localStorage.getItem('coinSettingsV3')) || {};
 
-    // 新增：觸控與手勢控制變數
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     let longPressTimer;
     let isLongPress = false;
@@ -939,7 +866,6 @@
         { key: 'entryDist', label: '現價與進場價距離', defaultDir: 'asc' }
     ];
 
-    // === INIT SETTINGS ===
     Object.keys(userSettings).forEach(k => { if (k !== '__GLOBAL__' && !COIN_LIST.includes(k.toUpperCase())) { COIN_LIST.push(k.toUpperCase()); } });
     COIN_LIST.forEach(coin => {
         if (!userSettings[coin]) userSettings[coin] = { entry: 0, target: 0, stopLoss: 0, isHolding: false, lastManualUpdate: 0, note: '', entrySide: null, capital: 0, leverage: 1, manualStatus: null };
@@ -953,12 +879,10 @@
     });
     function saveSettings() { localStorage.setItem('coinSettingsV3', JSON.stringify(userSettings)) }
 
-    // === UTILS ===
     function formatPrice(p) { const n = Number(p); if (n === 0) return '---'; if (n < 0.0001) return n.toLocaleString('en-US', { maximumSignificantDigits: 4 }); if (n < 1) return n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }); return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
     function formatRelativeTime(ts) { if (!ts) return '未曾設定'; const diff = Date.now() - ts; if (diff < 60000) return '剛剛'; const m = Math.floor(diff / 60000); if (m < 60) return `${m} 分鐘前`; const h = Math.floor(m / 60); if (h < 24) return `${h} 小時前`; const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}` }
     function showToast(msg, type = 'success') { const t = document.createElement('div'); t.className = `fixed bottom-28 left-1/2 -translate-x-1/2 text-xs px-4 py-2 rounded-lg shadow-lg z-[60] transition-all ${type === 'success' ? 'bg-green-600/90 text-white' : 'bg-red-600/90 text-white'}`; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000) }
 
-    // === CLOUD/AUTH ===
     function updateSyncStatus() { const s = document.getElementById('sync-status'); if (isAdmin && cloudBin) { s.className = "text-[11px] px-3 py-1.5 rounded-lg bg-green-500/15 text-green-400 font-medium mb-6 text-center"; s.innerText = "PRO 管理者模式" } else if (!isAdmin && cloudBin) { s.className = "text-[11px] px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 font-medium mb-6 text-center"; s.innerText = "唯讀訪客模式" } else { s.className = "text-[11px] px-3 py-1.5 rounded-lg bg-slate-800 text-slate-500 font-medium mb-6 text-center"; s.innerText = "本地端未連線" } }
 
     async function toggleAdminLogin() {
@@ -975,10 +899,8 @@
     async function pushToCloud(manual = false) { if (!cloudKey || !cloudBin) { if (manual) alert("請先建立區塊！"); return } const btn = document.getElementById('push-btn'); if (manual && btn) btn.innerText = "上傳中..."; try { const r = await fetch("https://api.jsonbin.io/v3/b/" + cloudBin, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': cloudKey }, body: JSON.stringify(userSettings) }); if (r.status === 401 || r.status === 403) { alert("授權錯誤！"); toggleAdminLogin() } else if (r.ok && manual) alert("✅ 同步成功！") } catch (e) { if (manual) alert("❌ " + e.message) } if (manual && btn) btn.innerText = "強制上傳雲端 ⬆️" }
     async function fetchFromCloud(silent = false) { if (!silent) saveSyncConfig(); if (!cloudBin) { if (!silent) showToast('請填寫 Bin ID！', 'error'); return } try { const r = await fetch("https://api.jsonbin.io/v3/b/" + cloudBin + "/latest", { method: 'GET', headers: { 'X-Master-Key': cloudKey || DEFAULT_API_KEY } }); const d = await r.json(); if (d.record) { const c = d.record; Object.keys(c).forEach(k => { if (k !== '__GLOBAL__' && !COIN_LIST.includes(k.toUpperCase())) { COIN_LIST.push(k.toUpperCase()); userSettings[k.toUpperCase()] = { entry: 0, target: 0, stopLoss: 0, isHolding: false, lastManualUpdate: 0, note: '', entrySide: null, capital: 0, leverage: 1, manualStatus: null }; } }); COIN_LIST.forEach(coin => { const k = c[coin] || c[coin.toLowerCase()]; if (k) userSettings[coin] = { entry: k.entry || 0, target: k.target || 0, stopLoss: k.stopLoss || 0, isHolding: k.isHolding || false, lastManualUpdate: k.lastManualUpdate || 0, note: k.note || '', entrySide: k.entrySide || null, capital: k.capital || 0, leverage: k.leverage || 1, manualStatus: k.manualStatus || null } }); if(c['__GLOBAL__']){ userSettings['__GLOBAL__'] = c['__GLOBAL__']; gdRealized = c['__GLOBAL__'].realizedPnL || 0; localStorage.setItem('gdRealized', gdRealized); const rEl = document.getElementById('gd-realized'); if(rEl) rEl.value = gdRealized; if(typeof gdUpdate === 'function') gdUpdate(); } saveSettings(); fetchExchangeData(); if (!silent) showToast("✅ 已讀取雲端資料！") } else { if (!silent) showToast("❌ " + (d.message || JSON.stringify(d)), 'error') } } catch (e) { if (!silent) showToast("❌ " + e.message, 'error') } }
 
-    // === NOTIFICATION ENGINE ===
-    let tgToken = localStorage.getItem('tgToken') || '8626285303:AAGoapdCR4Wvjyt-l8bGPpGVsh3bcXiFwmc';
-    let tgChatId = localStorage.getItem('tgChatId') || '7312609139';
-    // Track already-notified events to avoid spamming
+    let tgToken = localStorage.getItem('tgToken') || '';
+    let tgChatId = localStorage.getItem('tgChatId') || '';
     let notifiedEvents = JSON.parse(localStorage.getItem('notifiedEvents') || '{}');
 
     function saveTgConfig() {
@@ -1019,12 +941,9 @@
     }
 
     function sendAlert(title, body, emoji) {
-        // Telegram (HTML formatted)
         const tgMsg = `${emoji} <b>${title}</b>\n${body}\n⏰ ${new Date().toLocaleString('zh-TW')}`;
         sendTelegram(tgMsg);
-        // Browser
         sendBrowserNotify(title, body);
-        // Toast
         showToast(`${emoji} ${title}`);
     }
 
@@ -1049,12 +968,9 @@
     function wasNotified(coin, event) {
         const ts = notifiedEvents[`${coin}_${event}`];
         if (!ts) return false;
-        // Reset after 24 hours to allow re-notification
         return (Date.now() - ts) < 86400000;
     }
 
-    // === KLINE-BASED ENTRY/TARGET/STOPLOSS DETECTION ===
-    // Multiple CORS proxies for fallback
     const PROXY_LIST = [
         (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
         (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
@@ -1062,42 +978,29 @@
     ];
 
     async function fetchJsonWithFallback(baseUrl, preferredProxyIdx = 0) {
-        // 1. 優先嘗試「直接連線 (Direct Fetch)」：Binance, Gate, Bitget 通常允許原生跨域，直連最穩且最快。
         try {
             const directRes = await fetch(baseUrl, window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(5000) } : {});
-            if (directRes.ok) {
-                return await directRes.json();
-            }
-        } catch (e) {
-            console.log(`[Direct Fetch Failed] ${baseUrl} - 切換至 Proxy 備援...`);
-        }
+            if (directRes.ok) return await directRes.json();
+        } catch (e) {}
 
-        // 2. 如果直連失敗 (例如遇到 CORS 阻擋)，才使用 Proxy 並加上時間戳記防快取
         const urlWithCacheBuster = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
         
         for (let i = 0; i < PROXY_LIST.length; i++) {
             const idx = (preferredProxyIdx + i) % PROXY_LIST.length;
             const fullUrl = PROXY_LIST[idx](urlWithCacheBuster);
-            
             try {
                 const res = await fetch(fullUrl, window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {});
-                if (!res.ok) continue; // 如果 Proxy 回傳錯誤 (429, 503 等)，直接換下一個
-                
+                if (!res.ok) continue; 
                 const text = await res.text();
                 const json = JSON.parse(text);
                 if (json && json.error) continue; 
-                
                 return json;
-            } catch (e) {
-                // 忽略單一 proxy 錯誤，繼續嘗試
-            }
+            } catch (e) {}
         }
-        return null; // 全部耗盡則回傳 null，避免整個 Promise 陣列崩潰
+        return null;
     }
 
-    // Fetch recent 5m candle high/low for a single coin
     async function fetchCandleHighLow(coin, idxOffset = 0) {
-        // Try Gate.io 5m kline (last 2 candles to cover gaps)
         try {
             const data = await fetchJsonWithFallback(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${coin}_USDT&interval=5m&limit=2`, idxOffset);
             if (Array.isArray(data) && data.length > 0) {
@@ -1106,7 +1009,6 @@
                 if (high > 0 && low < Infinity) return { high, low };
             }
         } catch (e) {}
-        // Fallback 1: OKX 5m kline
         try {
             const d = await fetchJsonWithFallback(`https://www.okx.com/api/v5/market/candles?instId=${coin}-USDT&bar=5m&limit=2`, (idxOffset + 1));
             if (d.data && d.data.length > 0) {
@@ -1115,7 +1017,6 @@
                 if (high > 0 && low < Infinity) return { high, low };
             }
         } catch (e) {}
-        // Fallback 2: Binance 5m kline
         try {
             const b = await fetchJsonWithFallback(`https://api.binance.com/api/v3/klines?symbol=${coin}USDT&interval=5m&limit=2`, (idxOffset + 2));
             if (Array.isArray(b) && b.length > 0) {
@@ -1124,7 +1025,6 @@
                 if (high > 0 && low < Infinity) return { high, low };
             }
         } catch (e) {}
-        // Fallback 3: MEXC 5m kline (迷因幣最強後盾)
         try {
             const m = await fetchJsonWithFallback(`https://api.mexc.com/api/v3/klines?symbol=${coin}USDT&interval=5m&limit=2`, (idxOffset + 3));
             if (Array.isArray(m) && m.length > 0) {
@@ -1134,34 +1034,34 @@
             }
         } catch (e) {}
         
-        return null; // fallback: use current price
+        return null;
     }
 
     async function checkAutoEntry() {
-        // 1. Identify coins that need kline-based checking
+        // 💡 防呆機制 1：訪客模式絕對不執行自動觸發與推播，避免本地狀態無法上傳導致無限迴圈
+        if (!isAdmin) return;
+
         const klineCoins = COIN_LIST.filter(coin => {
             const s = userSettings[coin];
             if (!s) return false;
-            if (!s.isHolding && s.entry > 0 && s.entrySide) return true; // pending entry
-            if (s.isHolding && s.target > 0 && s.manualStatus !== 'target_reached' && !wasNotified(coin, 'target')) return true; // active target
-            if (s.isHolding && s.stopLoss > 0 && s.manualStatus !== 'no_market' && !wasNotified(coin, 'stoploss')) return true; // active stoploss
+            // 💡 防呆機制 2：加入 !wasNotified(coin, 'entry') 阻斷 24 小時內重複發送
+            if (!s.isHolding && s.entry > 0 && s.entrySide && !wasNotified(coin, 'entry')) return true; 
+            if (s.isHolding && s.target > 0 && s.manualStatus !== 'target_reached' && !wasNotified(coin, 'target')) return true; 
+            if (s.isHolding && s.stopLoss > 0 && s.manualStatus !== 'no_market' && !wasNotified(coin, 'stoploss')) return true; 
             return false;
         });
 
-        // 2. Fetch kline high/low for those coins in parallel but staggered
-        const klineData = {}; // coin -> { high, low }
+        const klineData = {};
         if (klineCoins.length > 0) {
-            const results = await Promise.allSettled(
+            await Promise.allSettled(
                 klineCoins.map(async (coin, index) => {
-                    await new Promise(r => setTimeout(r, index * 250)); // Stagger requests by 250ms to prevent proxy 429
+                    await new Promise(r => setTimeout(r, index * 250));
                     const hl = await fetchCandleHighLow(coin, index);
                     if (hl) klineData[coin] = hl;
                 })
             );
-            console.log(`[Kline] Fetched ${Object.keys(klineData).length}/${klineCoins.length} candles`);
         }
 
-        // 3. Run entry/target/stoploss checks using kline high/low (fallback to current price)
         let entryTrig = [], targetTrig = [], slTrig = [];
         COIN_LIST.forEach(coin => {
             const s = userSettings[coin], m = marketData[coin];
@@ -1170,11 +1070,11 @@
             if (p <= 0) return;
 
             const kl = klineData[coin];
-            const checkHigh = kl ? kl.high : p; // use candle high if available
-            const checkLow  = kl ? kl.low  : p; // use candle low if available
+            const checkHigh = kl ? kl.high : p; 
+            const checkLow  = kl ? kl.low  : p; 
 
-            // --- Auto Entry (kline-enhanced) ---
-            if (!s.isHolding && s.entry && s.entrySide && e > 0) {
+            // --- Auto Entry ---
+            if (!s.isHolding && s.entry && s.entrySide && e > 0 && !wasNotified(coin, 'entry')) {
                 let go = false;
                 if (s.entrySide === 'breakout' && checkHigh >= e) go = true;
                 if (s.entrySide === 'dip' && checkLow <= e) go = true;
@@ -1187,7 +1087,7 @@
                 }
             }
 
-            // --- Target Reached (kline-enhanced) ---
+            // --- Target Reached ---
             if (s.isHolding && t > 0 && checkHigh >= t && s.manualStatus !== 'target_reached' && !wasNotified(coin, 'target')) {
                 userSettings[coin].manualStatus = 'target_reached';
                 userSettings[coin].lastManualUpdate = Date.now();
@@ -1195,10 +1095,11 @@
                 targetTrig.push(coin);
             }
 
-            // --- Stop Loss Hit (kline-enhanced) ---
+            // --- Stop Loss Hit ---
             if (s.isHolding && sl > 0 && checkLow <= sl && s.manualStatus !== 'no_market' && !wasNotified(coin, 'stoploss')) {
                 userSettings[coin].isHolding = false;
                 userSettings[coin].entrySide = null;
+                userSettings[coin].manualStatus = 'no_market'; // 鎖死狀態
                 userSettings[coin].lastManualUpdate = Date.now();
                 markNotified(coin, 'stoploss');
                 slTrig.push(coin);
@@ -1207,10 +1108,11 @@
 
         const anyTrig = entryTrig.length + targetTrig.length + slTrig.length;
         if (anyTrig > 0) {
-            saveSettings(); pushToCloud(false); if (!editingCoin) renderCards();
+            saveSettings(); 
+            pushToCloud(false); 
+            if (!editingCoin) renderCards();
         }
 
-        // Send notifications & log to notification center
         entryTrig.forEach(c => {
             const p = formatPrice(marketData[c]?.price);
             const title = `${c} 自動進場`;
@@ -1236,15 +1138,12 @@
         });
     }
 
-    // === EXPORT/IMPORT ===
     function exportSettings() { const d = JSON.stringify(userSettings, null, 2), b = new Blob([d], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; const t = new Date(); a.download = `altcoin_vault_${t.getFullYear()}${String(t.getMonth() + 1).padStart(2, '0')}${String(t.getDate()).padStart(2, '0')}.json`; a.click(); URL.revokeObjectURL(u); showToast('✅ 備份已匯出！') }
     function importSettings() { const i = document.createElement('input'); i.type = 'file'; i.accept = '.json'; i.onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { const imp = JSON.parse(ev.target.result); let c = 0; COIN_LIST.forEach(coin => { if (imp[coin]) { userSettings[coin] = Object.assign({}, userSettings[coin], imp[coin]); c++ } }); saveSettings(); renderCards(); showToast(`✅ 已匯入 ${c} 筆策略！`) } catch (err) { showToast('❌ 格式不正確', 'error') } }; r.readAsText(f) }; i.click() }
 
-    // === API ===
     async function fetchExchangeData() {
         const statusEl = document.getElementById('status-indicator');
         try {
-            // 加入 MEXC 與 KuCoin，這兩家支援極速直連，徹底解決冷門幣斷線問題
             const [bRes, mRes, kRes, oRes, gRes, bgRes, pRes] = await Promise.allSettled([
                 fetchJsonWithFallback('https://api.binance.com/api/v3/ticker/24hr', 0),
                 fetchJsonWithFallback('https://api.mexc.com/api/v3/ticker/24hr', 1),
@@ -1257,7 +1156,6 @@
 
             let bM = {}, mM = {}, kM = {}, oM = {}, gM = {}, bgM = {}, pM = {};
 
-            // 1. 解析幣安 (Binance)
             if (bRes.status === 'fulfilled' && bRes.value) {
                 try {
                     const bD = bRes.value;
@@ -1271,7 +1169,6 @@
                 } catch(e) {}
             }
 
-            // 2. 解析抹茶 (MEXC) - 迷因幣大本營
             if (mRes.status === 'fulfilled' && mRes.value) {
                 try {
                     const mD = mRes.value;
@@ -1287,7 +1184,6 @@
                 } catch(e) {}
             }
 
-            // 3. 解析庫幣 (KuCoin)
             if (kRes.status === 'fulfilled' && kRes.value && kRes.value.data && kRes.value.data.ticker) {
                 try {
                     kRes.value.data.ticker.forEach(t => {
@@ -1298,7 +1194,6 @@
                 } catch(e) {}
             }
 
-            // 4. 解析 OKX
             if (oRes.status === 'fulfilled' && oRes.value) {
                 try {
                     const oD = oRes.value;
@@ -1314,7 +1209,6 @@
                 } catch(e) {}
             }
 
-            // 5. 解析 Gate.io
             if (gRes.status === 'fulfilled' && gRes.value) {
                 try {
                     const gD = gRes.value;
@@ -1328,7 +1222,6 @@
                 } catch(e) {}
             }
 
-            // 6. 解析 Bitget
             if (bgRes.status === 'fulfilled' && bgRes.value) {
                 try {
                     const bgD = bgRes.value;
@@ -1344,7 +1237,6 @@
                 } catch(e) {}
             }
 
-            // 7. 解析 Pionex
             if (pRes.status === 'fulfilled' && pRes.value) {
                 try {
                     const pD = pRes.value;
@@ -1363,11 +1255,9 @@
 
             marketData = {};
             COIN_LIST.forEach(coin => {
-                // 終極備援陣列: Binance -> MEXC -> KuCoin -> OKX -> Gate -> Bitget -> Pionex
                 marketData[coin] = bM[coin] || mM[coin] || kM[coin] || oM[coin] || gM[coin] || bgM[coin] || pM[coin] || { price: 0, change: 0, vol: 0, src: '--' };
             });
 
-            // Restore status indicator on success
             if (statusEl) statusEl.innerHTML = `<span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>`;
 
             if (!editingCoin) renderCards();
@@ -1379,13 +1269,11 @@
         }
     }
 
-    // === NOTIFICATION LOG ===
     let notifLog = JSON.parse(localStorage.getItem('notifLog') || '[]');
 
     function addNotifLog(emoji, title, body, type) {
         const entry = { id: Date.now(), emoji, title, body, type, time: Date.now(), read: false };
         notifLog.unshift(entry);
-        // Keep max 100 entries
         if (notifLog.length > 100) notifLog = notifLog.slice(0, 100);
         localStorage.setItem('notifLog', JSON.stringify(notifLog));
         updateNotifBadge();
@@ -1408,7 +1296,6 @@
             return;
         }
         container.innerHTML = '';
-        // Group by date
         let lastDate = '';
         notifLog.forEach(n => {
             const d = new Date(n.time);
@@ -1456,7 +1343,6 @@
         renderNotifList();
     }
 
-    // === UI FUNCTIONS ===
     function toggleSidePanel() { document.getElementById('side-panel').classList.toggle('open'); document.getElementById('side-overlay').classList.toggle('active') }
     function toggleNotifPanel() {
         const panel = document.getElementById('notif-panel');
@@ -1473,7 +1359,6 @@
     function changeSort(key) { if (currentSort === key) { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc' } else { currentSort = key; sortDirection = SORT_OPTIONS.find(o => o.key === key).defaultDir } renderSortOpts(); renderCards() }
     function renderSortOpts() { const c = document.getElementById('sort-opts'); c.innerHTML = ''; SORT_OPTIONS.forEach(o => { const active = currentSort === o.key; const arrow = active ? (sortDirection === 'asc' ? '↑' : '↓') : ''; const el = document.createElement('div'); el.className = 'sort-opt' + (active ? ' active' : ''); el.onclick = () => changeSort(o.key); el.innerHTML = `<span class="text-xs font-medium">${o.label}</span><span class="text-xs font-mono">${arrow}</span>`; c.appendChild(el) }) }
 
-    // === BOTTOM SHEET ===
     function openBottomSheet(coin) { selectedCoin = coin; editingCoin = null; renderBottomSheet(false); document.getElementById('bottom-sheet').classList.add('open'); document.getElementById('sheet-overlay').classList.add('active') }
     function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); document.getElementById('sheet-overlay').classList.remove('active'); if (editingCoin) { editingCoin = null } selectedCoin = null }
     function renderBottomSheet(isEdit) {
@@ -1581,7 +1466,6 @@
         pushToCloud(false).then(() => { ind.className = oc; ind.innerText = ot });
     }
 
-    // === RENDER CARDS ===
     function getSortValue(coin) {
         const m = marketData[coin] || { price: 0, change: 0 }; const s = userSettings[coin] || {};
         const p = Number(m.price), e = Number(s.entry), t = Number(s.target);
@@ -1596,17 +1480,14 @@
         }
     }
 
-    // === 核心渲染與事件綁定 ===
     function renderCards() {
         const container = document.getElementById('coin-container');
         const searchVal = (document.getElementById('searchInput').value || document.getElementById('desktopSearchInput').value || '').toUpperCase();
         let list = COIN_LIST.filter(c => c.toUpperCase().includes(searchVal));
-        // Filter
         if (currentFilter === 'holding') list = list.filter(c => (userSettings[c] || {}).isHolding);
         if (currentFilter === 'watching') list = list.filter(c => !(userSettings[c] || {}).isHolding);
         if (currentFilter === 'target_reached') list = list.filter(c => { const s = userSettings[c] || {}; const m = marketData[c] || { price: 0 }; return s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target)); });
         if (currentFilter === 'no_market') list = list.filter(c => { const s = userSettings[c] || {}; const m = marketData[c] || { src: '--' }; return s.manualStatus === 'no_market' || m.src === '--'; });
-        // Sort
         list.sort((a, b) => {
             const va = getSortValue(a), vb = getSortValue(b);
             if (currentSort === 'name') { return sortDirection === 'asc' ? a.localeCompare(b) : b.localeCompare(a) }
@@ -1623,8 +1504,6 @@
             const chgColor = isUp ? 'text-emerald-400' : 'text-red-400';
             const targetHit = s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target));
             const noMarket = s.manualStatus === 'no_market' || m.src === '--';
-            
-            // 邏輯優化：已達標代表出場，不再算是主動持有
             const isActivelyHolding = s.isHolding && !targetHit;
             
             const card = document.createElement('div');
@@ -1634,34 +1513,28 @@
             card.className = cls;
             card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
             
-            // --- 行動端與電腦端交互分離 ---
             if (!isTouchDevice) {
-                // 電腦端：點擊開啟編輯 (Hover 控制由 CSS 負責)
                 card.onclick = () => openBottomSheet(coin);
             } else {
-                // 行動端：手勢操作
                 card.addEventListener('touchstart', (e) => {
                     isLongPress = false;
                     isMoving = false;
                     longPressTimer = setTimeout(() => {
                         if (!isMoving) {
                             isLongPress = true;
-                            // 若設備支援，則震動提示
                             if (navigator.vibrate) navigator.vibrate(60);
                             openBottomSheet(coin);
                         }
-                    }, 600); // 600ms 長按判定
+                    }, 600); 
                 }, { passive: true });
 
                 card.addEventListener('touchmove', () => {
-                    // 若有滑動，取消長按
                     isMoving = true;
                     clearTimeout(longPressTimer);
                 }, { passive: true });
 
                 card.addEventListener('touchend', (e) => {
                     clearTimeout(longPressTimer);
-                    // 若沒有觸發長按且沒有滑動，視為單擊展開/收合
                     if (!isLongPress && !isMoving) {
                         card.classList.toggle('expanded');
                     }
@@ -1674,7 +1547,7 @@
 
             let pnlHtml = '';
             if ((isActivelyHolding || targetHit) && entryPrice > 0 && curPrice > 0) {
-                const pnlCalcPrice = targetHit && targetPrice > 0 ? targetPrice : curPrice; // 達標後鎖定目標價計算
+                const pnlCalcPrice = targetHit && targetPrice > 0 ? targetPrice : curPrice; 
                 const pnlPct = ((pnlCalcPrice - entryPrice) / entryPrice * 100 * (s.leverage || 1));
                 const pnlColor = pnlPct >= 0 ? 'text-emerald-400' : 'text-red-400';
                 const pnlAbs = s.capital > 0 ? (s.capital * pnlPct / 100).toFixed(2) : null;
@@ -1745,7 +1618,6 @@
         });
     }
 
-    // === GLOBAL DASHBOARD ===
     let gdOpen = localStorage.getItem('gdOpen') === 'true';
     let gdRealized = parseFloat(localStorage.getItem('gdRealized')) || 0;
     if (userSettings['__GLOBAL__'] && userSettings['__GLOBAL__'].realizedPnL !== undefined) {
@@ -1754,7 +1626,7 @@
     }
 
     function toggleGD() {
-        if (window.innerWidth >= 1024) return; // Disable toggle on desktop
+        if (window.innerWidth >= 1024) return;
         gdOpen = !gdOpen;
         localStorage.setItem('gdOpen', gdOpen);
         document.getElementById('gd').classList.toggle('open', gdOpen);
@@ -1767,7 +1639,7 @@
             const s = userSettings[coin], m = marketData[coin];
             if (!s || !m || !s.isHolding || !s.capital || !s.entry) return;
             const targetHit = s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target));
-            if (targetHit) return; // 已達標視為出場，不列入浮動損益
+            if (targetHit) return; 
             const p = Number(m.price), e = Number(s.entry), cap = Number(s.capital), lev = Number(s.leverage || 1);
             if (p > 0 && e > 0) tot += cap * ((p - e) / e) * lev;
         });
@@ -1816,15 +1688,12 @@
         const tDisp = document.getElementById('gd-target-profit-disp');
         if (tDisp) { tDisp.textContent = sumTargetProfit.toFixed(2) + ' U'; tDisp.style.color = 'var(--green)'; }
 
-        // Float PnL
         const fEl = document.getElementById('gd-float');
         if (fEl) { fEl.textContent = (floatPnl >= 0 ? '+' : '') + floatPnl.toFixed(2) + ' U'; fEl.style.color = floatPnl >= 0 ? 'var(--green)' : 'var(--red)'; }
 
-        // Total profit
         const tpEl = document.getElementById('gd-total-profit');
         if (tpEl) { tpEl.textContent = (totalProfit >= 0 ? '+' : '') + totalProfit.toFixed(2) + ' USDT'; tpEl.style.color = totalProfit >= 0 ? 'var(--accent)' : 'var(--red)'; }
 
-        // Pill
         const pill = document.getElementById('gd-pill');
         if (pill) {
             if (sumCapital > 0) {
@@ -1834,7 +1703,6 @@
             } else { pill.textContent = ''; }
         }
 
-        // overall progress %
         let overallPct = 0;
         if (sumTargetProfit > 0) {
             overallPct = Math.max(0, Math.min(100, totalProfit / sumTargetProfit * 100));
@@ -1896,31 +1764,24 @@
         }
         if (cloudBin) { fetchFromCloud(true); }
         gdInit();
-        // Init notification settings
         const tgTEl = document.getElementById('tg-token');
         const tgCEl = document.getElementById('tg-chatid');
         if (tgTEl) tgTEl.value = tgToken || '';
         if (tgCEl) tgCEl.value = tgChatId || '';
         updateNotifyStatus();
-        // Init notification center
         updateNotifBadge();
         renderNotifList();
     }, 100);
 
     let countdown = 180;
-    let cloudSyncCounter = 300; // 每 5 分鐘從雲端拉取一次
+    let cloudSyncCounter = 300; 
 
-    // 新增：偵測網頁切回前景 (手機切換 App 或解鎖螢幕時觸發)
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && !editingCoin) {
             console.log('網頁切回前景，自動同步雲端與最新報價...');
             countdown = 180;
             cloudSyncCounter = 300;
-            
-            // 立即刷新現價
             fetchExchangeData();
-            
-            // 立即從雲端拉取 V8 可能更新的最新狀態
             if (cloudBin) { 
                 fetchFromCloud(true).then(() => {
                     showToast('🔄 已自動同步雲端最新狀態', 'success');
