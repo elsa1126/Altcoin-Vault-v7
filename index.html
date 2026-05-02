@@ -901,7 +901,6 @@
 
     let tgToken = localStorage.getItem('tgToken') || '';
     let tgChatId = localStorage.getItem('tgChatId') || '';
-    let notifiedEvents = JSON.parse(localStorage.getItem('notifiedEvents') || '{}');
 
     function saveTgConfig() {
         tgToken = (document.getElementById('tg-token').value || '').trim();
@@ -958,17 +957,8 @@
 
     async function testTgNotify() {
         if (!tgToken || !tgChatId) { showToast('請先填寫 Token 和 Chat ID！', 'error'); return; }
-        sendAlert('📡 測試推播成功！', '您的策略看板通知系統已就緒。\n自動進場 / 達標停利 / 觸價停損 皆會推播通知。', '📡');
-    }
-
-    function markNotified(coin, event) {
-        notifiedEvents[`${coin}_${event}`] = Date.now();
-        localStorage.setItem('notifiedEvents', JSON.stringify(notifiedEvents));
-    }
-    function wasNotified(coin, event) {
-        const ts = notifiedEvents[`${coin}_${event}`];
-        if (!ts) return false;
-        return (Date.now() - ts) < 86400000;
+        sendAlert('📡 測試推播成功！', '您的策略看板通知系統已就緒。\n這是一則從 V7 網頁版發出的測試訊息。', '📡');
+        addNotifLog('📡', '測試推播成功！', '這是一則從 V7 網頁版發出的測試訊息。', 'entry');
     }
 
     const PROXY_LIST = [
@@ -979,9 +969,13 @@
 
     async function fetchJsonWithFallback(baseUrl, preferredProxyIdx = 0) {
         try {
-            const directRes = await fetch(baseUrl, window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(5000) } : {});
+            // 放寬直連超時到 15 秒 (因為幣安 ticker 資料龐大，手機網路常超過 5 秒)
+            const options = window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(15000) } : {};
+            const directRes = await fetch(baseUrl, options);
             if (directRes.ok) return await directRes.json();
-        } catch (e) {}
+        } catch (e) {
+            console.warn(`[直連失敗] ${baseUrl}`, e.message);
+        }
 
         const urlWithCacheBuster = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
         
@@ -989,153 +983,19 @@
             const idx = (preferredProxyIdx + i) % PROXY_LIST.length;
             const fullUrl = PROXY_LIST[idx](urlWithCacheBuster);
             try {
-                const res = await fetch(fullUrl, window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {});
+                // Proxy 通常更慢，放寬到 20 秒
+                const options = window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(20000) } : {};
+                const res = await fetch(fullUrl, options);
                 if (!res.ok) continue; 
                 const text = await res.text();
                 const json = JSON.parse(text);
                 if (json && json.error) continue; 
                 return json;
-            } catch (e) {}
+            } catch (e) {
+                console.warn(`[Proxy失敗] ${fullUrl}`, e.message);
+            }
         }
         return null;
-    }
-
-    async function fetchCandleHighLow(coin, idxOffset = 0) {
-        try {
-            const data = await fetchJsonWithFallback(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=${coin}_USDT&interval=5m&limit=2`, idxOffset);
-            if (Array.isArray(data) && data.length > 0) {
-                let high = 0, low = Infinity;
-                data.forEach(c => { high = Math.max(high, Number(c[3])); low = Math.min(low, Number(c[4])); });
-                if (high > 0 && low < Infinity) return { high, low };
-            }
-        } catch (e) {}
-        try {
-            const d = await fetchJsonWithFallback(`https://www.okx.com/api/v5/market/candles?instId=${coin}-USDT&bar=5m&limit=2`, (idxOffset + 1));
-            if (d.data && d.data.length > 0) {
-                let high = 0, low = Infinity;
-                d.data.forEach(c => { high = Math.max(high, Number(c[2])); low = Math.min(low, Number(c[3])); });
-                if (high > 0 && low < Infinity) return { high, low };
-            }
-        } catch (e) {}
-        try {
-            const b = await fetchJsonWithFallback(`https://api.binance.com/api/v3/klines?symbol=${coin}USDT&interval=5m&limit=2`, (idxOffset + 2));
-            if (Array.isArray(b) && b.length > 0) {
-                let high = 0, low = Infinity;
-                b.forEach(c => { high = Math.max(high, Number(c[2])); low = Math.min(low, Number(c[3])); });
-                if (high > 0 && low < Infinity) return { high, low };
-            }
-        } catch (e) {}
-        try {
-            const m = await fetchJsonWithFallback(`https://api.mexc.com/api/v3/klines?symbol=${coin}USDT&interval=5m&limit=2`, (idxOffset + 3));
-            if (Array.isArray(m) && m.length > 0) {
-                let high = 0, low = Infinity;
-                m.forEach(c => { high = Math.max(high, Number(c[2])); low = Math.min(low, Number(c[3])); });
-                if (high > 0 && low < Infinity) return { high, low };
-            }
-        } catch (e) {}
-        
-        return null;
-    }
-
-    async function checkAutoEntry() {
-        // 💡 防呆機制 1：訪客模式絕對不執行自動觸發與推播，避免本地狀態無法上傳導致無限迴圈
-        if (!isAdmin) return;
-
-        const klineCoins = COIN_LIST.filter(coin => {
-            const s = userSettings[coin];
-            if (!s) return false;
-            // 💡 防呆機制 2：加入 !wasNotified(coin, 'entry') 阻斷 24 小時內重複發送
-            if (!s.isHolding && s.entry > 0 && s.entrySide && !wasNotified(coin, 'entry')) return true; 
-            if (s.isHolding && s.target > 0 && s.manualStatus !== 'target_reached' && !wasNotified(coin, 'target')) return true; 
-            if (s.isHolding && s.stopLoss > 0 && s.manualStatus !== 'no_market' && !wasNotified(coin, 'stoploss')) return true; 
-            return false;
-        });
-
-        const klineData = {};
-        if (klineCoins.length > 0) {
-            await Promise.allSettled(
-                klineCoins.map(async (coin, index) => {
-                    await new Promise(r => setTimeout(r, index * 250));
-                    const hl = await fetchCandleHighLow(coin, index);
-                    if (hl) klineData[coin] = hl;
-                })
-            );
-        }
-
-        let entryTrig = [], targetTrig = [], slTrig = [];
-        COIN_LIST.forEach(coin => {
-            const s = userSettings[coin], m = marketData[coin];
-            if (!s || !m) return;
-            const p = Number(m.price), e = Number(s.entry), t = Number(s.target), sl = Number(s.stopLoss);
-            if (p <= 0) return;
-
-            const kl = klineData[coin];
-            const checkHigh = kl ? kl.high : p; 
-            const checkLow  = kl ? kl.low  : p; 
-
-            // --- Auto Entry ---
-            if (!s.isHolding && s.entry && s.entrySide && e > 0 && !wasNotified(coin, 'entry')) {
-                let go = false;
-                if (s.entrySide === 'breakout' && checkHigh >= e) go = true;
-                if (s.entrySide === 'dip' && checkLow <= e) go = true;
-                if (go) {
-                    userSettings[coin].isHolding = true;
-                    userSettings[coin].entrySide = null;
-                    userSettings[coin].lastManualUpdate = Date.now();
-                    markNotified(coin, 'entry');
-                    entryTrig.push(coin);
-                }
-            }
-
-            // --- Target Reached ---
-            if (s.isHolding && t > 0 && checkHigh >= t && s.manualStatus !== 'target_reached' && !wasNotified(coin, 'target')) {
-                userSettings[coin].manualStatus = 'target_reached';
-                userSettings[coin].lastManualUpdate = Date.now();
-                markNotified(coin, 'target');
-                targetTrig.push(coin);
-            }
-
-            // --- Stop Loss Hit ---
-            if (s.isHolding && sl > 0 && checkLow <= sl && s.manualStatus !== 'no_market' && !wasNotified(coin, 'stoploss')) {
-                userSettings[coin].isHolding = false;
-                userSettings[coin].entrySide = null;
-                userSettings[coin].manualStatus = 'no_market'; // 鎖死狀態
-                userSettings[coin].lastManualUpdate = Date.now();
-                markNotified(coin, 'stoploss');
-                slTrig.push(coin);
-            }
-        });
-
-        const anyTrig = entryTrig.length + targetTrig.length + slTrig.length;
-        if (anyTrig > 0) {
-            saveSettings(); 
-            pushToCloud(false); 
-            if (!editingCoin) renderCards();
-        }
-
-        entryTrig.forEach(c => {
-            const p = formatPrice(marketData[c]?.price);
-            const title = `${c} 自動進場`;
-            const body = `現價: ${p}\n已自動進場，請注意持倉風險。`;
-            sendAlert(`🚀 ${title}`, body, '🚀');
-            addNotifLog('🚀', title, body, 'entry');
-        });
-        targetTrig.forEach(c => {
-            const p = formatPrice(marketData[c]?.price);
-            const t = formatPrice(userSettings[c]?.target);
-            const title = `${c} 已達目標價`;
-            const body = `現價: ${p} ≥ 目標: ${t}\n已自動標記為「已達標」。`;
-            sendAlert(`🎯 ${title}`, body, '🎯');
-            addNotifLog('🎯', title, body, 'target');
-        });
-        slTrig.forEach(c => {
-            const p = formatPrice(marketData[c]?.price);
-            const sl = formatPrice(userSettings[c]?.stopLoss);
-            const title = `${c} 觸及停損`;
-            const body = `現價: ${p} ≤ 停損: ${sl}\n已自動清除持倉狀態。`;
-            sendAlert(`🛑 ${title}`, body, '🛑');
-            addNotifLog('🛑', title, body, 'stoploss');
-        });
     }
 
     function exportSettings() { const d = JSON.stringify(userSettings, null, 2), b = new Blob([d], { type: 'application/json' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; const t = new Date(); a.download = `altcoin_vault_${t.getFullYear()}${String(t.getMonth() + 1).padStart(2, '0')}${String(t.getDate()).padStart(2, '0')}.json`; a.click(); URL.revokeObjectURL(u); showToast('✅ 備份已匯出！') }
@@ -1145,7 +1005,7 @@
         const statusEl = document.getElementById('status-indicator');
         try {
             const [bRes, mRes, kRes, oRes, gRes, bgRes, pRes] = await Promise.allSettled([
-                fetchJsonWithFallback('https://api.binance.com/api/v3/ticker/24hr', 0),
+                fetchJsonWithFallback('https://data-api.binance.vision/api/v3/ticker/24hr', 0),
                 fetchJsonWithFallback('https://api.mexc.com/api/v3/ticker/24hr', 1),
                 fetchJsonWithFallback('https://api.kucoin.com/api/v1/market/allTickers', 2),
                 fetchJsonWithFallback('https://www.okx.com/api/v5/market/tickers?instType=SPOT', 0),
@@ -1261,7 +1121,8 @@
             if (statusEl) statusEl.innerHTML = `<span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>`;
 
             if (!editingCoin) renderCards();
-            await checkAutoEntry();
+            
+            // 💡 刪除了原有的 checkAutoEntry()，將監控職責 100% 交給 V8
 
         } catch (e) {
             console.error('fetchExchangeData 全部失敗:', e);
