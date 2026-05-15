@@ -112,6 +112,11 @@
             animation: gold-pulse 2.5s ease-in-out infinite
         }
 
+        .coin-card.stopped-out {
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-left: 3px solid var(--red);
+        }
+
         @keyframes gold-pulse {
 
             0%,
@@ -737,6 +742,8 @@
                 class="py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-white/[0.06] bg-white/[0.03] text-[#8B95A8] whitespace-nowrap">未進場</button>
             <button onclick="setFilter('target_reached')" data-f="target_reached"
                 class="py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-white/[0.06] bg-white/[0.03] text-[#8B95A8] whitespace-nowrap">已達標</button>
+            <button onclick="setFilter('stopped_out')" data-f="stopped_out"
+                class="py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-white/[0.06] bg-white/[0.03] text-[#8B95A8] whitespace-nowrap">已止損</button>
             <button onclick="setFilter('no_market')" data-f="no_market"
                 class="py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-white/[0.06] bg-white/[0.03] text-[#8B95A8] whitespace-nowrap">未適配</button>
         </div>
@@ -1229,8 +1236,29 @@
     }
     function toggleSortMenu() { document.getElementById('sort-menu').classList.toggle('open'); document.getElementById('sort-overlay').classList.toggle('active') }
     function toggleSearch() { const s = document.getElementById('pill-search'), b = document.getElementById('pill-search-btn'), f = document.getElementById('pill-filter-label'), sb = document.getElementById('pill-sort-btn'); if (s.classList.contains('active')) { s.classList.remove('active'); b.style.display = ''; f.style.display = ''; sb.style.display = ''; document.getElementById('searchInput').value = ''; document.getElementById('desktopSearchInput').value = ''; renderCards() } else { s.classList.add('active'); b.style.display = 'none'; f.style.display = 'none'; sb.style.display = 'none'; document.getElementById('searchInput').focus() } }
-    function cycleFilter() { const fs = ['all', 'holding', 'watching', 'target_reached', 'no_market']; const i = (fs.indexOf(currentFilter) + 1) % 5; setFilter(fs[i]) }
-    function setFilter(f) { currentFilter = f; const labels = { all: '全部', holding: '已進場', watching: '未進場', target_reached: '已達標', no_market: '未適配' }; document.getElementById('pill-filter-label').textContent = labels[f]; const dfl = document.getElementById('desktop-filter-label'); if(dfl) dfl.textContent = labels[f]; document.querySelectorAll('#filter-btns button').forEach(b => { if (b.dataset.f === f) { b.className = 'py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-[#638AFF]/25 bg-[#638AFF]/10 text-[#638AFF] whitespace-nowrap' } else { b.className = 'py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-white/[0.06] bg-white/[0.03] text-[#8B95A8] whitespace-nowrap' } }); renderCards() }
+    
+    function cycleFilter() { 
+        const fs = ['all', 'holding', 'watching', 'target_reached', 'stopped_out', 'no_market']; 
+        const i = (fs.indexOf(currentFilter) + 1) % 6; 
+        setFilter(fs[i]); 
+    }
+    
+    function setFilter(f) { 
+        currentFilter = f; 
+        const labels = { all: '全部', holding: '已進場', watching: '未進場', target_reached: '已達標', stopped_out: '已止損', no_market: '未適配' }; 
+        document.getElementById('pill-filter-label').textContent = labels[f]; 
+        const dfl = document.getElementById('desktop-filter-label'); 
+        if(dfl) dfl.textContent = labels[f]; 
+        document.querySelectorAll('#filter-btns button').forEach(b => { 
+            if (b.dataset.f === f) { 
+                b.className = 'py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-[#638AFF]/25 bg-[#638AFF]/10 text-[#638AFF] whitespace-nowrap';
+            } else { 
+                b.className = 'py-2 px-1 text-[11px] rounded-lg font-semibold transition border border-white/[0.06] bg-white/[0.03] text-[#8B95A8] whitespace-nowrap';
+            } 
+        }); 
+        renderCards();
+    }
+    
     function changeSort(key) { if (currentSort === key) { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc' } else { currentSort = key; sortDirection = SORT_OPTIONS.find(o => o.key === key).defaultDir } renderSortOpts(); renderCards() }
     function renderSortOpts() { const c = document.getElementById('sort-opts'); c.innerHTML = ''; SORT_OPTIONS.forEach(o => { const active = currentSort === o.key; const arrow = active ? (sortDirection === 'asc' ? '↑' : '↓') : ''; const el = document.createElement('div'); el.className = 'sort-opt' + (active ? ' active' : ''); el.onclick = () => changeSort(o.key); el.innerHTML = `<span class="text-xs font-medium">${o.label}</span><span class="text-xs font-mono">${arrow}</span>`; c.appendChild(el) }) }
 
@@ -1243,9 +1271,11 @@
         const isUp = Number(m.change) >= 0; const chgColor = isUp ? 'text-emerald-400' : 'text-red-400';
         const expectedGain = entry > 0 && target > 0 ? ((target - entry) / entry * 100).toFixed(2) : '--';
         const expectedLoss = entry > 0 && sl > 0 ? ((entry - sl) / entry * 100).toFixed(2) : '--';
+        
         let statusLabel = s.isHolding ? '已進場' : '觀望中';
         let statusClass = s.isHolding ? 'border-[#638AFF]/30 text-[#638AFF] bg-[#638AFF]/10' : 'border-white/[0.06] text-[#525C6F] bg-white/[0.03]';
         if (s.manualStatus === 'target_reached') { statusLabel = '已達標'; statusClass = 'border-amber-500/30 text-amber-400 bg-amber-500/10'; }
+        else if (s.manualStatus === 'stopped_out') { statusLabel = '已止損'; statusClass = 'border-red-500/30 text-red-400 bg-red-500/10'; }
         else if (s.manualStatus === 'no_market') { statusLabel = '未有適配市場'; statusClass = 'border-red-500/30 text-red-400 bg-red-500/10'; }
         
         const c = document.getElementById('sheet-content');
@@ -1276,6 +1306,7 @@
                 <option value="false" ${dropdownValue === 'false' ? 'selected' : ''}>觀望中 (Watching)</option>
                 <option value="true" ${dropdownValue === 'true' ? 'selected' : ''}>已進場 (Holding)</option>
                 <option value="target_reached" ${dropdownValue === 'target_reached' ? 'selected' : ''}>已達標 (Target Reached)</option>
+                <option value="stopped_out" ${dropdownValue === 'stopped_out' ? 'selected' : ''}>已止損 (Stopped Out)</option>
                 <option value="no_market" ${dropdownValue === 'no_market' ? 'selected' : ''}>未有適配市場 (No Market)</option>
             </select></div>
             <div><label class="text-[10px] text-[#525C6F] uppercase block mb-1 font-semibold">觸發價 (進場價)</label>
@@ -1298,12 +1329,21 @@
         }
     }
     function enterEditMode() { renderBottomSheet(true) }
+    
     function saveEdit() {
         const coin = selectedCoin; if (!coin) return;
         const newEntry = parseFloat(document.getElementById('edit-entry').value) || 0;
         const holdingVal = document.getElementById('edit-holding').value;
-        const newHolding = holdingVal === 'true' || holdingVal === 'target_reached';
-        const newManualStatus = (holdingVal === 'target_reached' || holdingVal === 'no_market') ? holdingVal : null;
+        let newHolding = holdingVal === 'true' || holdingVal === 'target_reached';
+        let newManualStatus = (holdingVal === 'target_reached' || holdingVal === 'no_market' || holdingVal === 'stopped_out') ? holdingVal : null;
+        
+        // 💡 自動重置防呆機制：如果原本是「已止損」或「已達標」，且「修改了進場價」，自動解除鎖定狀態變回「觀望中」
+        const oldEntry = Number(userSettings[coin].entry) || 0;
+        if (newEntry !== oldEntry && (newManualStatus === 'stopped_out' || newManualStatus === 'target_reached')) {
+            newHolding = false;
+            newManualStatus = null; 
+        }
+
         const newTarget = parseFloat(document.getElementById('edit-target').value) || 0;
         const newSl = parseFloat(document.getElementById('edit-sl').value) || 0;
         const newNote = document.getElementById('edit-note').value || '';
@@ -1362,6 +1402,7 @@
         if (currentFilter === 'holding') list = list.filter(c => (userSettings[c] || {}).isHolding);
         if (currentFilter === 'watching') list = list.filter(c => !(userSettings[c] || {}).isHolding);
         if (currentFilter === 'target_reached') list = list.filter(c => { const s = userSettings[c] || {}; const m = marketData[c] || { price: 0 }; return s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target)); });
+        if (currentFilter === 'stopped_out') list = list.filter(c => (userSettings[c] || {}).manualStatus === 'stopped_out');
         if (currentFilter === 'no_market') list = list.filter(c => { const s = userSettings[c] || {}; const m = marketData[c] || { src: '--' }; return s.manualStatus === 'no_market' || m.src === '--'; });
         list.sort((a, b) => {
             const va = getSortValue(a), vb = getSortValue(b);
@@ -1378,6 +1419,7 @@
             const isUp = Number(m.change) >= 0;
             const chgColor = isUp ? 'text-emerald-400' : 'text-red-400';
             const targetHit = s.manualStatus === 'target_reached' || (s.isHolding && s.target > 0 && Number(m.price) >= Number(s.target));
+            const stoppedOut = s.manualStatus === 'stopped_out';
             const noMarket = s.manualStatus === 'no_market' || m.src === '--';
             const isActivelyHolding = s.isHolding && !targetHit;
             
@@ -1385,6 +1427,7 @@
             let cls = 'coin-card group';
             if (isActivelyHolding) cls += ' holding';
             if (targetHit) cls += ' target-hit';
+            if (stoppedOut) cls += ' stopped-out';
             card.className = cls;
             card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
             
@@ -1437,6 +1480,8 @@
             if (curPrice > 0) {
                 if (targetHit) {
                     distHtml = `<div class="flex items-center gap-1.5"><span class="text-[10px] text-amber-400 font-bold">✅ 已達標出場</span></div>`;
+                } else if (stoppedOut) {
+                    distHtml = `<div class="flex items-center gap-1.5"><span class="text-[10px] text-red-400 font-bold">🛑 已止損出場</span></div>`;
                 } else {
                     const goalPrice = isActivelyHolding ? targetPrice : entryPrice;
                     const distLabel = isActivelyHolding ? '距目標' : '距觸發';
@@ -1459,6 +1504,7 @@
                         <span class="font-bold text-white text-[16px]">${coin}</span>
                         ${isActivelyHolding ? `<span class="text-[9px] px-1.5 py-0.5 bg-[#638AFF]/15 text-[#638AFF] rounded-md border border-[#638AFF]/30 font-bold tracking-tight">HOLDING</span>` : ''}
                         ${targetHit ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 rounded-md border border-amber-500/30 font-bold tracking-tight">TARGET HIT</span>` : ''}
+                        ${stoppedOut ? `<span class="text-[9px] px-1.5 py-0.5 bg-red-500/15 text-red-400 rounded-md border border-red-500/30 font-bold tracking-tight">STOPPED OUT</span>` : ''}
                     </div>
                     <span class="${chgColor} text-[13px] font-bold font-mono bg-white/[0.03] px-2 py-0.5 rounded-md border border-white/[0.04]">${isUp ? '+' : ''}${Number(m.change).toFixed(2)}%</span>
                 </div>
