@@ -967,14 +967,26 @@
         (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
     ];
 
+    // 自訂 Timeout Fetch 取代 AbortSignal.timeout，提高舊手機相容性
+    async function fetchWithTimeout(url, timeoutMs = 15000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(id);
+            return res;
+        } catch (e) {
+            clearTimeout(id);
+            throw e;
+        }
+    }
+
     async function fetchJsonWithFallback(baseUrl, preferredProxyIdx = 0) {
         try {
-            // 放寬直連超時到 15 秒 (因為幣安 ticker 資料龐大，手機網路常超過 5 秒)
-            const options = window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(15000) } : {};
-            const directRes = await fetch(baseUrl, options);
+            const directRes = await fetchWithTimeout(baseUrl, 10000);
             if (directRes.ok) return await directRes.json();
         } catch (e) {
-            console.warn(`[直連失敗] ${baseUrl}`, e.message);
+            console.warn(`[直連失敗] ${baseUrl}`);
         }
 
         const urlWithCacheBuster = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
@@ -983,17 +995,13 @@
             const idx = (preferredProxyIdx + i) % PROXY_LIST.length;
             const fullUrl = PROXY_LIST[idx](urlWithCacheBuster);
             try {
-                // Proxy 通常更慢，放寬到 20 秒
-                const options = window.AbortSignal && window.AbortSignal.timeout ? { signal: AbortSignal.timeout(20000) } : {};
-                const res = await fetch(fullUrl, options);
+                const res = await fetchWithTimeout(fullUrl, 15000);
                 if (!res.ok) continue; 
                 const text = await res.text();
                 const json = JSON.parse(text);
                 if (json && json.error) continue; 
                 return json;
-            } catch (e) {
-                console.warn(`[Proxy失敗] ${fullUrl}`, e.message);
-            }
+            } catch (e) {}
         }
         return null;
     }
@@ -1111,14 +1119,20 @@
             }
 
             const hasData = Object.keys(bM).length + Object.keys(mM).length + Object.keys(kM).length + Object.keys(oM).length + Object.keys(gM).length + Object.keys(bgM).length + Object.keys(pM).length > 0;
-            if (!hasData) throw new Error('No data from any exchange');
-
-            marketData = {};
-            COIN_LIST.forEach(coin => {
-                marketData[coin] = bM[coin] || mM[coin] || kM[coin] || oM[coin] || gM[coin] || bgM[coin] || pM[coin] || { price: 0, change: 0, vol: 0, src: '--' };
-            });
-
-            if (statusEl) statusEl.innerHTML = `<span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>`;
+            
+            // 💡 斷線防護機制：如果沒抓到資料，保留舊資料渲染，不再當機報錯
+            if (!hasData) {
+                console.warn('本輪抓取不到任何交易所的資料，將保留上一輪的舊行情');
+                if (Object.keys(marketData).length === 0) {
+                    COIN_LIST.forEach(coin => { marketData[coin] = { price: 0, change: 0, vol: 0, src: '--' }; });
+                }
+                if (statusEl) statusEl.innerHTML = `<span style="font-size:10px;color:var(--amber);font-family:var(--font-mono)">OFFLINE</span>`;
+            } else {
+                COIN_LIST.forEach(coin => {
+                    marketData[coin] = bM[coin] || mM[coin] || kM[coin] || oM[coin] || gM[coin] || bgM[coin] || pM[coin] || marketData[coin] || { price: 0, change: 0, vol: 0, src: '--' };
+                });
+                if (statusEl) statusEl.innerHTML = `<span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>`;
+            }
 
             if (!editingCoin) renderCards();
             
