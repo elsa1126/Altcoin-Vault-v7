@@ -873,7 +873,7 @@
         { key: 'entryDist', label: '現價與進場價距離', defaultDir: 'asc' }
     ];
 
-    Object.keys(userSettings).forEach(k => { if (k !== '__GLOBAL__' && !COIN_LIST.includes(k.toUpperCase())) { COIN_LIST.push(k.toUpperCase()); } });
+    Object.keys(userSettings).forEach(k => { if (k !== '__GLOBAL__' && k !== '__NOTIF_LOG__' && !COIN_LIST.includes(k.toUpperCase())) { COIN_LIST.push(k.toUpperCase()); } });
     COIN_LIST.forEach(coin => {
         if (!userSettings[coin]) userSettings[coin] = { entry: 0, target: 0, stopLoss: 0, isHolding: false, lastManualUpdate: 0, note: '', entrySide: null, capital: 0, leverage: 1, manualStatus: null };
         else {
@@ -904,7 +904,85 @@
     async function guestRefresh() { const btn = document.getElementById('guest-refresh-btn'); if (btn) { btn.innerText = '...'; btn.disabled = true } saveSyncConfig(); if (!cloudBin) { alert('尚無 Bin ID！'); if (btn) { btn.innerText = '🔄'; btn.disabled = false } return } await fetchFromCloud(false); if (btn) { btn.innerText = '🔄'; btn.disabled = false } }
     async function createCloudBin() { saveSyncConfig(); if (!cloudKey) return alert("請先登入管理員！"); try { const r = await fetch("https://api.jsonbin.io/v3/b", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': cloudKey, 'X-Bin-Name': 'AltcoinVaultSync', 'X-Bin-Private': 'false' }, body: JSON.stringify(userSettings) }); const d = await r.json(); if (d.record) { cloudBin = d.metadata.id; document.getElementById('sync-bin').value = cloudBin; saveSyncConfig(); alert("✅ Bin ID: " + cloudBin) } else alert("❌ " + JSON.stringify(d)) } catch (e) { alert("❌ " + e) } }
     async function pushToCloud(manual = false) { if (!cloudKey || !cloudBin) { if (manual) alert("請先建立區塊！"); return } const btn = document.getElementById('push-btn'); if (manual && btn) btn.innerText = "上傳中..."; try { const r = await fetch("https://api.jsonbin.io/v3/b/" + cloudBin, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': cloudKey }, body: JSON.stringify(userSettings) }); if (r.status === 401 || r.status === 403) { alert("授權錯誤！"); toggleAdminLogin() } else if (r.ok && manual) alert("✅ 同步成功！") } catch (e) { if (manual) alert("❌ " + e.message) } if (manual && btn) btn.innerText = "強制上傳雲端 ⬆️" }
-    async function fetchFromCloud(silent = false) { if (!silent) saveSyncConfig(); if (!cloudBin) { if (!silent) showToast('請填寫 Bin ID！', 'error'); return } try { const r = await fetch("https://api.jsonbin.io/v3/b/" + cloudBin + "/latest", { method: 'GET', headers: { 'X-Master-Key': cloudKey || DEFAULT_API_KEY } }); const d = await r.json(); if (d.record) { const c = d.record; Object.keys(c).forEach(k => { if (k !== '__GLOBAL__' && !COIN_LIST.includes(k.toUpperCase())) { COIN_LIST.push(k.toUpperCase()); userSettings[k.toUpperCase()] = { entry: 0, target: 0, stopLoss: 0, isHolding: false, lastManualUpdate: 0, note: '', entrySide: null, capital: 0, leverage: 1, manualStatus: null }; } }); COIN_LIST.forEach(coin => { const k = c[coin] || c[coin.toLowerCase()]; if (k) userSettings[coin] = { entry: k.entry || 0, target: k.target || 0, stopLoss: k.stopLoss || 0, isHolding: k.isHolding || false, lastManualUpdate: k.lastManualUpdate || 0, note: k.note || '', entrySide: k.entrySide || null, capital: k.capital || 0, leverage: k.leverage || 1, manualStatus: k.manualStatus || null } }); if(c['__GLOBAL__']){ userSettings['__GLOBAL__'] = c['__GLOBAL__']; gdRealized = c['__GLOBAL__'].realizedPnL || 0; localStorage.setItem('gdRealized', gdRealized); const rEl = document.getElementById('gd-realized'); if(rEl) rEl.value = gdRealized; if(typeof gdUpdate === 'function') gdUpdate(); } saveSettings(); fetchExchangeData(); if (!silent) showToast("✅ 已讀取雲端資料！") } else { if (!silent) showToast("❌ " + (d.message || JSON.stringify(d)), 'error') } } catch (e) { if (!silent) showToast("❌ " + e.message, 'error') } }
+    
+    async function fetchFromCloud(silent = false) { 
+        if (!silent) saveSyncConfig(); 
+        if (!cloudBin) { if (!silent) showToast('請填寫 Bin ID！', 'error'); return } 
+        try { 
+            const r = await fetch("https://api.jsonbin.io/v3/b/" + cloudBin + "/latest", { method: 'GET', headers: { 'X-Master-Key': cloudKey || DEFAULT_API_KEY } }); 
+            const d = await r.json(); 
+            if (d.record) { 
+                const c = d.record; 
+                Object.keys(c).forEach(k => { 
+                    if (k !== '__GLOBAL__' && k !== '__NOTIF_LOG__' && !COIN_LIST.includes(k.toUpperCase())) { 
+                        COIN_LIST.push(k.toUpperCase()); 
+                        userSettings[k.toUpperCase()] = { entry: 0, target: 0, stopLoss: 0, isHolding: false, lastManualUpdate: 0, note: '', entrySide: null, capital: 0, leverage: 1, manualStatus: null }; 
+                    } 
+                }); 
+                COIN_LIST.forEach(coin => { 
+                    const k = c[coin] || c[coin.toLowerCase()]; 
+                    if (k) {
+                        userSettings[coin] = { 
+                            entry: k.entry || 0, 
+                            target: k.target || 0, 
+                            stopLoss: k.stopLoss || 0, 
+                            isHolding: k.isHolding || false, 
+                            lastManualUpdate: k.lastManualUpdate || 0, 
+                            note: k.note || '', 
+                            entrySide: k.entrySide || null, 
+                            capital: k.capital || 0, 
+                            leverage: k.leverage || 1, 
+                            manualStatus: k.manualStatus || null 
+                        };
+                        
+                        if (userSettings[coin].manualStatus === 'no_market' && userSettings[coin].stopLoss > 0) {
+                            userSettings[coin].manualStatus = 'stopped_out';
+                        }
+                    }
+                }); 
+                
+                // 💡 讀取雲端的通知紀錄，並將新紀錄加入到本地！
+                if (c['__NOTIF_LOG__']) {
+                    userSettings['__NOTIF_LOG__'] = c['__NOTIF_LOG__'];
+                    let localIds = new Set(notifLog.map(n => n.id));
+                    let addedNew = false;
+                    
+                    // 雲端陣列最新的在最前面，所以我們從後面開始倒著加入本地陣列，維持順序正確
+                    for (let i = c['__NOTIF_LOG__'].length - 1; i >= 0; i--) {
+                        const cn = c['__NOTIF_LOG__'][i];
+                        if (!localIds.has(cn.id)) {
+                            notifLog.unshift({ ...cn, read: false });
+                            addedNew = true;
+                        }
+                    }
+                    
+                    if (addedNew) {
+                        notifLog.sort((a, b) => b.time - a.time);
+                        if (notifLog.length > 100) notifLog = notifLog.slice(0, 100);
+                        localStorage.setItem('notifLog', JSON.stringify(notifLog));
+                        updateNotifBadge();
+                        renderNotifList();
+                    }
+                }
+
+                if(c['__GLOBAL__']){ 
+                    userSettings['__GLOBAL__'] = c['__GLOBAL__']; 
+                    gdRealized = c['__GLOBAL__'].realizedPnL || 0; 
+                    localStorage.setItem('gdRealized', gdRealized); 
+                    const rEl = document.getElementById('gd-realized'); 
+                    if(rEl) rEl.value = gdRealized; 
+                    if(typeof gdUpdate === 'function') gdUpdate(); 
+                } 
+                saveSettings(); 
+                fetchExchangeData(); 
+                if (!silent) showToast("✅ 已讀取雲端資料！") 
+            } else { 
+                if (!silent) showToast("❌ " + (d.message || JSON.stringify(d)), 'error') 
+            } 
+        } catch (e) { 
+            if (!silent) showToast("❌ " + e.message, 'error') 
+        } 
+    }
 
     let tgToken = localStorage.getItem('tgToken') || '';
     let tgChatId = localStorage.getItem('tgChatId') || '';
@@ -974,7 +1052,6 @@
         (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
     ];
 
-    // 自訂 Timeout Fetch 取代 AbortSignal.timeout，提高舊手機相容性
     async function fetchWithTimeout(url, timeoutMs = 15000) {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -1127,7 +1204,6 @@
 
             const hasData = Object.keys(bM).length + Object.keys(mM).length + Object.keys(kM).length + Object.keys(oM).length + Object.keys(gM).length + Object.keys(bgM).length + Object.keys(pM).length > 0;
             
-            // 💡 斷線防護機制：如果沒抓到資料，保留舊資料渲染，不再當機報錯
             if (!hasData) {
                 console.warn('本輪抓取不到任何交易所的資料，將保留上一輪的舊行情');
                 if (Object.keys(marketData).length === 0) {
@@ -1142,8 +1218,6 @@
             }
 
             if (!editingCoin) renderCards();
-            
-            // 💡 刪除了原有的 checkAutoEntry()，將監控職責 100% 交給 V8
 
         } catch (e) {
             console.error('fetchExchangeData 全部失敗:', e);
@@ -1154,7 +1228,7 @@
     let notifLog = JSON.parse(localStorage.getItem('notifLog') || '[]');
 
     function addNotifLog(emoji, title, body, type) {
-        const entry = { id: Date.now(), emoji, title, body, type, time: Date.now(), read: false };
+        const entry = { id: Date.now() + '-' + Math.floor(Math.random()*1000), emoji, title, body, type, time: Date.now(), read: false };
         notifLog.unshift(entry);
         if (notifLog.length > 100) notifLog = notifLog.slice(0, 100);
         localStorage.setItem('notifLog', JSON.stringify(notifLog));
@@ -1210,12 +1284,14 @@
     }
 
     function clearNotifLog() {
-        if (!confirm('確定要清除所有通知紀錄嗎？')) return;
+        if (!confirm('確定要清除所有通知紀錄嗎？這將會同步清除雲端的所有紀錄。')) return;
         notifLog = [];
         localStorage.setItem('notifLog', JSON.stringify(notifLog));
+        userSettings['__NOTIF_LOG__'] = []; // 💡 同步清空雲端紀錄
+        pushToCloud(true);
         updateNotifBadge();
         renderNotifList();
-        showToast('✅ 通知紀錄已清除');
+        showToast('✅ 通知紀錄已清除並同步至雲端');
     }
 
     function markAllNotifRead() {
