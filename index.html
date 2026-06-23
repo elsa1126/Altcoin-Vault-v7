@@ -934,10 +934,6 @@
                             leverage: k.leverage || 1, 
                             manualStatus: k.manualStatus || null 
                         };
-                        
-                        if (userSettings[coin].manualStatus === 'no_market' && userSettings[coin].stopLoss > 0) {
-                            userSettings[coin].manualStatus = 'stopped_out';
-                        }
                     }
                 }); 
                 
@@ -1553,7 +1549,10 @@
             }
 
             let distHtml = '';
-            if (curPrice > 0) {
+            // 💡 改寫這段：給「未有適配市場」專屬的 UI 標記，不會再跳出錯誤的「距觸發」或「已止損」
+            if (noMarket) {
+                distHtml = `<div class="flex items-center gap-1.5"><span class="text-[10px] text-[#8B95A8] font-bold">⚠️ 未適配 / 暫無報價</span></div>`;
+            } else if (curPrice > 0) {
                 if (targetHit) {
                     distHtml = `<div class="flex items-center gap-1.5"><span class="text-[10px] text-amber-400 font-bold">✅ 已達標出場</span></div>`;
                 } else if (stoppedOut) {
